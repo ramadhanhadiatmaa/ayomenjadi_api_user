@@ -9,6 +9,7 @@ type User struct {
 	Prov     string `json:"prov"`
 	Kab      string `json:"kab"`
 	Form     string `json:"form"`
+	Analy    string `json:"analy"`
 	Res      int    `json:"res"`
 	To1      int    `json:"to1"`
 	To2      int    `json:"to2"`
