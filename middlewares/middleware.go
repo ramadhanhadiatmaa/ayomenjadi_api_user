@@ -16,7 +16,7 @@ func Auth(ctx *fiber.Ctx) error {
 
 	secret_key := os.Getenv("SECRET_KEY")
 
-	header := os.Getenv("HEADER_KEY")
+	header := ctx.Get(os.Getenv("HEADER_KEY"))
 
 	if header == "" || header != secret_key {
 		return ctx.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
