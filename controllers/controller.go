@@ -49,16 +49,16 @@ func Create(c *fiber.Ctx) error {
 
 func Show(c *fiber.Ctx) error {
 
-	user := &models.User{}
+	email := &models.User{}
 	id := c.Params("email")
 
-	if err := models.DB.Db.First(user, id).Error; err != nil {
+	if err := models.DB.Db.First(email, id).Error; err != nil {
 		return c.Status(fiber.StatusNotFound).JSON(fiber.Map{
 			"Message": err.Error(),
 		})
 	}
 
-	return c.Status(fiber.StatusOK).JSON(user)
+	return c.Status(fiber.StatusOK).JSON(email)
 }
 
 func Check(c *fiber.Ctx) error {
