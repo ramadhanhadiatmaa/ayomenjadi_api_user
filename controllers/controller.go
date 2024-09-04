@@ -4,6 +4,7 @@ import (
 	"am_user/models"
 
 	"github.com/gofiber/fiber/v2"
+	"gorm.io/gorm"
 )
 
 func Index(c *fiber.Ctx) error {
@@ -63,7 +64,7 @@ func Show(c *fiber.Ctx) error {
 
 func Check(c *fiber.Ctx) error {
 
-	user := &models.User{}
+	/* user := &models.User{}
 	id := c.Params("username")
 
 	if err := models.DB.Db.First(user, id).Error; err != nil {
@@ -72,7 +73,24 @@ func Check(c *fiber.Ctx) error {
 		})
 	}
 
-	return c.Status(fiber.StatusOK).JSON(user)
+	return c.Status(fiber.StatusOK).JSON(user) */
+
+	username := c.Params("username")
+    var user models.User
+
+    result := models.DB.Db.Where("username = ?", username).First(&user)
+    if result.Error != nil {
+        if result.Error == gorm.ErrRecordNotFound {
+            return c.Status(fiber.StatusNotFound).JSON(fiber.Map{
+                "Message": "User not found",
+            })
+        }
+        return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+            "Message": result.Error.Error(),
+        })
+    }
+
+    return c.JSON(user)
 }
 
 func Update(c *fiber.Ctx) error {
