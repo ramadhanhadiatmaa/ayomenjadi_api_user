@@ -50,106 +50,84 @@ func Create(c *fiber.Ctx) error {
 
 func Show(c *fiber.Ctx) error {
 
-	email := &models.User{}
-	id := c.Params("email")
+	email := c.Params("email")
+	var user models.User
 
-	if err := models.DB.Db.First(email, id).Error; err != nil {
-		return c.Status(fiber.StatusNotFound).JSON(fiber.Map{
-			"Message": err.Error(),
+	result := models.DB.Db.Where("email = ?", email).First(&user)
+	if result.Error != nil {
+		if result.Error == gorm.ErrRecordNotFound {
+			return c.Status(fiber.StatusNotFound).JSON(fiber.Map{
+				"Message": "User not found",
+			})
+		}
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+			"Message": result.Error.Error(),
 		})
 	}
 
-	return c.Status(fiber.StatusOK).JSON(email)
+	return c.JSON(user)
 }
 
 func Check(c *fiber.Ctx) error {
 
-	/* user := &models.User{}
-	id := c.Params("username")
+	username := c.Params("username")
+	var user models.User
 
-	if err := models.DB.Db.First(user, id).Error; err != nil {
-		return c.Status(fiber.StatusNotFound).JSON(fiber.Map{
-			"Message": err.Error(),
+	result := models.DB.Db.Where("username = ?", username).First(&user)
+	if result.Error != nil {
+		if result.Error == gorm.ErrRecordNotFound {
+			return c.Status(fiber.StatusNotFound).JSON(fiber.Map{
+				"Message": "User not found",
+			})
+		}
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+			"Message": result.Error.Error(),
 		})
 	}
 
-	return c.Status(fiber.StatusOK).JSON(user) */
-
-	username := c.Params("username")
-    var user models.User
-
-    result := models.DB.Db.Where("username = ?", username).First(&user)
-    if result.Error != nil {
-        if result.Error == gorm.ErrRecordNotFound {
-            return c.Status(fiber.StatusNotFound).JSON(fiber.Map{
-                "Message": "User not found",
-            })
-        }
-        return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
-            "Message": result.Error.Error(),
-        })
-    }
-
-    return c.JSON(user)
+	return c.JSON(user)
 }
 
 func Update(c *fiber.Ctx) error {
 
-	user := &models.User{}
-	id := c.Params("username")
+	username := c.Params("username")
+	var updatedData models.User
 
-	if err := models.DB.Db.First(user, id).Error; err != nil {
-		return c.Status(fiber.StatusNotFound).JSON(fiber.Map{
-			"Error": err.Error(),
-		})
-	}
-
-	if err := c.BodyParser(user); err != nil {
+	// Parse the body to get the updated user data
+	if err := c.BodyParser(&updatedData); err != nil {
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
 			"Message": err.Error(),
 		})
 	}
 
-	models.DB.Db.Save(user)
-
-	return c.Status(fiber.StatusOK).JSON(user)
-
-}
-
-func Reset(c *fiber.Ctx) error {
-
-	user := &models.User{}
-	id := c.Params("username")
-
-	if err := models.DB.Db.First(user, id).Error; err != nil {
-		return c.Status(fiber.StatusNotFound).JSON(fiber.Map{
-			"Error": err.Error(),
+	if models.DB.Db.Where("username = ?", username).Updates(&updatedData).RowsAffected == 0 {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+			"message": "Username tidak dapat ditemukan.",
 		})
 	}
 
-	if err := c.BodyParser(user); err != nil {
-		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
-			"Message": err.Error(),
-		})
-	}
+	return c.JSON(fiber.Map{
+		"message": "Data berhasil diupdate.",
+	})
 
-	models.DB.Db.Save(user)
-
-	return c.Status(fiber.StatusOK).JSON(user)
 }
 
 func Delete(c *fiber.Ctx) error {
 
-	user := &models.User{}
-	id := c.Params("username")
+	username := c.Params("username")
 
-	if err := models.DB.Db.First(user, id).Error; err != nil {
-		return c.Status(fiber.StatusNotFound).JSON(fiber.Map{
-			"Error": err.Error(),
+	// Delete the user record
+	result := models.DB.Db.Where("username = ?", username).Delete(&models.User{})
+	if result.Error != nil {
+		if result.RowsAffected == 0 {
+			return c.Status(fiber.StatusNotFound).JSON(fiber.Map{
+				"Message": "User not found",
+			})
+		}
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+			"Message": result.Error.Error(),
 		})
 	}
 
-	models.DB.Db.Delete(user, id)
-
-	return c.Status(fiber.StatusOK).JSON(fiber.Map{"Message": "Delete Data"})
+	return c.Status(fiber.StatusNoContent).SendString("User deleted successfully")
 }
