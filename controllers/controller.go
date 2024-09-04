@@ -90,7 +90,7 @@ func Check(c *fiber.Ctx) error {
 
 func Update(c *fiber.Ctx) error {
 
-	username := c.Params("username")
+	email := c.Params("email")
 	var updatedData models.User
 
 	// Parse the body to get the updated user data
@@ -100,7 +100,7 @@ func Update(c *fiber.Ctx) error {
 		})
 	}
 
-	if models.DB.Db.Where("username = ?", username).Updates(&updatedData).RowsAffected == 0 {
+	if models.DB.Db.Where("email = ?", email).Updates(&updatedData).RowsAffected == 0 {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
 			"message": "Username tidak dapat ditemukan.",
 		})
@@ -114,10 +114,10 @@ func Update(c *fiber.Ctx) error {
 
 func Delete(c *fiber.Ctx) error {
 
-	username := c.Params("username")
+	email := c.Params("email")
 
 	// Delete the user record
-	result := models.DB.Db.Where("username = ?", username).Delete(&models.User{})
+	result := models.DB.Db.Where("email = ?", email).Delete(&models.User{})
 	if result.Error != nil {
 		if result.RowsAffected == 0 {
 			return c.Status(fiber.StatusNotFound).JSON(fiber.Map{
